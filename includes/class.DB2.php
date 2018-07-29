@@ -49,7 +49,6 @@ class Db2Database
         return $result;
     }
 
-
     public function fetch_array_assoc($result_set) {
         return odbc_fetch_array($result_set);
     }
@@ -64,6 +63,14 @@ class Db2Database
             $output .= "Last SQL query: " . $this->last_query;
             die($output);
         }
+    }
+
+    public function fetch_all_array_assoc($result_set) {
+        $retArr = array();
+        while($row = odbc_fetch_array($result_set)) {
+            $retArr[] = $row;
+        }
+        return $retArr;
     }
 
 }
