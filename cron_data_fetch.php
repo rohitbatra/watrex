@@ -20,7 +20,7 @@ $resultCount = count($resultArr);
 
 // Store the RAW Result Array into MySQL DB
 $jsonData = json_encode($resultArr);
-$sql_insert = "INSERT into `".DbConfig::DB_NAME.".raw_dump` (`data`,`records_count`) VALUES ('{$jsonData}','{$resultCount}')";
+$sql_insert = "INSERT into `".DbConfig::DB_NAME.".raw_dump` (`data`,`records_count`) VALUES ('".$database->escape_value($jsonData)."','{$resultCount}')";
 $database->query($sql_insert);
 
 if($resultCount > 0) {
@@ -28,19 +28,19 @@ if($resultCount > 0) {
     foreach ($resultArr as $record){
 
         // SQL Check for the PO Number if exists then don't add the Order Record
-        $sql_check = "SELECT `ord_id` FROM `".DbConfig::DB_NAME.".orders` WHERE `po_number` = '{$record['BHLDN_PO#']}'";
+        $sql_check = "SELECT `ord_id` FROM `".DbConfig::DB_NAME.".orders` WHERE `po_number` = '{$record['BHLDN_PO#']}' AND `order_number` = '{$record['ORDER#']}' AND `lot_number` = '{$record['LOT#']}' AND `style` LIKE '{$record['STYLE#']}' AND `items_in_lot` = '{$record['TOTAL_PCS_IN_LOT']}'";
         $database->query($sql_check);
         if($database->affected_rows() < 1){
-            $sql_insert = "INSERT into `".DbConfig::DB_NAME.".orders` 
+            $sql_insert = "INSERT into `".DbConfig::DB_NAME.".orders`
                             (
                             `po_number`,`order_number`,`style`,`color_pattern`,`arrive_date`,
                             `lot_number`,`items_in_lot`,`items_in_order`,`exit_date`,
                             `factory_id`,`unit_price`,`extended_cost`,`comment_fld`
-                            ) 
-                            VALUES 
+                            )
+                            VALUES
                             (
-                            '".$database->escape_value($record['BHLDN_PO#'])."','".$database->escape_value($record['ORDER#'])."','".$database->escape_value($record['STYLE#'])."','".$database->escape_value($record['COLOR_DESC'])."','".date('Y-m-d',strtotime($record['ARRIVE_BHLDN']))."',
-                            '".$database->escape_value($record['LOT#'])."','".(int) $database->escape_value($record['TOTAL_PCS_IN_LOT'])."','".(int) $database->escape_value($record['TOTAL_PCS_IN_ORDER'])."','".date('Y-m-d',strtotime($record['XHK_DATE']))."',
+                            '".$database->escape_value($record['BHLDN_PO#'])."','".$database->escape_value($record['ORDER#'])."','".$database->escape_value($record['STYLE#'])."','".$database->escape_value($record['COLOR_DESC'])."','".$database->escape_value($record['ARRIVE_BHLDN'])."',
+                            '".$database->escape_value($record['LOT#'])."','".(int) $database->escape_value($record['TOTAL_PCS_IN_LOT'])."','".(int) $database->escape_value($record['TOTAL_PCS_IN_ORDER'])."','".$database->escape_value($record['XHK_DATE'])."',
                             '".$database->escape_value($record['FACTORY'])."','".$database->escape_value($record['UNIT_PRICE'])."','".$database->escape_value($record['EXTENDED_COST'])."','".$database->escape_value($record['COMMENT'])."'
                             )";
 

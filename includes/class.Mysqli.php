@@ -2,8 +2,8 @@
 
 class MySQLiDatabase
 {
+    public $last_query;
     private $connection;
-    public  $last_query;
 
     function __construct()
     {
@@ -12,7 +12,7 @@ class MySQLiDatabase
 
     public function open_connection()
     {
-        $this->connection = mysqli_connect(DB_SERVER, DB_USER, DB_PASS, DB_NAME);
+        $this->connection = mysqli_connect(DbConfig::DB_HOST, DbConfig::DB_USER, DbConfig::DB_PASS, DbConfig::DB_NAME);
         if (!$this->connection) {
             echo "Error: Unable to connect to MySQL." . PHP_EOL;
             echo "Debugging errno: " . mysqli_connect_errno() . PHP_EOL;
@@ -23,8 +23,7 @@ class MySQLiDatabase
 
     public function close_connection()
     {
-        if (isset($this->connection))
-        {
+        if (isset($this->connection)) {
             mysqli_close($this->connection);
             unset($this->connection);
         }
@@ -38,9 +37,18 @@ class MySQLiDatabase
         return $result;
     }
 
+    private function confirm_query($result)
+    {
+        if (!$result) {
+            $output = "Database query failed: " . mysqli_error($this->connection) . "<br /><br />";
+            $output .= "Last SQL query: " . $this->last_query;
+            die($output);
+        }
+    }
+
     public function escape_value($value)
     {
-        $value = mysqli_real_escape_string($this->connection,$value);
+        $value = mysqli_real_escape_string($this->connection, $value);
         return $value;
     }
 
@@ -67,16 +75,6 @@ class MySQLiDatabase
     public function affected_rows()
     {
         return mysqli_affected_rows($this->connection);
-    }
-
-    private function confirm_query($result)
-    {
-        if (!$result)
-        {
-            $output = "Database query failed: " . mysqli_error($this->connection) . "<br /><br />";
-            $output .= "Last SQL query: " . $this->last_query;
-            die($output);
-        }
     }
 
     public function startTransaction()
